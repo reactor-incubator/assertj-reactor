@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2011-Present Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'maven-publish'
+apply plugin: "com.jfrog.artifactory"
+
+jar {
+	manifest.attributes["Created-By"] = "${System.getProperty("java.version")} (${System.getProperty("java.specification.vendor")})"
+	manifest.attributes["Implementation-Title"] = project.name
+	manifest.attributes["Implementation-Version"] = project.version
+}
+
+task sourcesJar(type: Jar) {
+	archiveClassifier.set('sources')
+	from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar) {
+	archiveClassifier.set('javadoc')
+	from javadoc
+}
+
+publishing {
+	publications {
+		mavenJava(MavenPublication) {
+			from components.java
+			artifact sourcesJar
+			artifact javadocJar
+			//other project-specific artifacts must be added in each project's builds
+
+			pom {
+				afterEvaluate {
+					name = project.description
+					description = project.description
+				}
+				packaging = 'jar' //if not explicitly set, end up as `pom` in output. omitted in output if set as `jar`...
+				url = 'https://github.com/reactor-incubator/assertj-reactor'
+				organization {
+					name = 'reactor incubator'
+					url = 'https://github.com/reactor-incubator'
+				}
+				licenses {
+					license {
+						name = 'Apache License, Version 2.0'
+						url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+						distribution = 'repo'
+					}
+				}
+				scm {
+					url = 'https://github.com/reactor-incubator/assertj-reactor'
+					connection = 'scm:git:git://github.com/reactor-incubator/assertj-reactor'
+					developerConnection = 'scm:git:git://github.com/reactor-incubator/assertj-reactor'
+				}
+				developers {
+					developer {
+						id = 'simonbasle'
+						name = 'Simon Baslé'
+						email = 'sbasle@pivotal.io'
+					}
+				}
+				issueManagement {
+					system = "GitHub Issues"
+					url = "https://github.com/reactor-incubator/assertj-reactor/issues"
+				}
+
+				withXml {
+					//groovy magic incantation to sort dependencies alphabetically (scope/group/name..)
+					def sorted = asNode().dependencies[0].children().collect().sort { it.scope.text() + it.groupId.text() + it.artifactId.text() }
+					asNode().dependencies[0].children().with { deps ->
+						deps.clear()
+						sorted.each { deps.add(it) }
+					}
+				}
+			}
+		}
+	}
+}
+
+artifactoryPublish {
+	publications(publishing.publications.mavenJava)
+}

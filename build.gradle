@@ -1,0 +1,128 @@
+/*
+ * Copyright (c) 2011-Present Pivotal Software Inc, All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+	id 'com.gradle.build-scan' version '2.4.2'
+	id "com.jfrog.artifactory" version "4.9.8" apply false
+}
+
+ext {
+	jdk = JavaVersion.current().majorVersion
+	jdkJavadoc = "https://docs.oracle.com/javase/$jdk/docs/api/"
+	if (JavaVersion.current().isJava11Compatible()) {
+		jdkJavadoc = "https://docs.oracle.com/en/java/javase/$jdk/docs/api/"
+	}
+	println "JDK Javadoc link for this build is ${rootProject.jdkJavadoc}"
+
+	// Reactor dependencies are in gradle.properties, main dependency is AssertJ
+	assertJVersion = '3.9.0'
+	
+	// Logging
+	slf4jVersion = '1.7.12'
+	logbackVersion = '1.1.2'
+
+	// Testing
+	junit5Version = '5.5.2'
+	awaitilityVersion = '3.1.2'
+}
+
+//only publish scan if a specific gradle entreprise server is passed
+//typically, for local usage, you would temporarily set the env with:
+// `GRADLE_ENTERPRISE_URL=https://myge.example.com/ gradle foo`
+if (System.getenv('GRADLE_ENTERPRISE_URL')) {
+	buildScan {
+		captureTaskInputFiles = true
+		obfuscation {
+			ipAddresses { addresses -> addresses.collect { '0.0.0.0' } }
+		}
+		publishAlways()
+		server = System.getenv('GRADLE_ENTERPRISE_URL')
+	}
+}
+
+configure(subprojects) { p ->
+	apply plugin: 'java-library'
+	apply plugin: 'jacoco'
+	apply from: "${rootDir}/gradle/setup.gradle"
+
+	description = 'AssertJ custom assertions for some classes of Reactor Core'
+	group = 'io.projectreactor.tools'
+
+	p.repositories {
+		if (version.endsWith('BUILD-SNAPSHOT')) {
+			maven { url 'https://repo.spring.io/libs-snapshot' }
+		}
+		mavenCentral()
+		jcenter()
+		maven { url 'https://repo.spring.io/libs-milestone' }
+	}
+	
+	[compileJava, compileTestJava]*.options*.compilerArgs = ["-Xlint:all"]
+	[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+	
+	compileJava {
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+	}
+
+	compileTestJava {
+		sourceCompatibility = 1.8
+		targetCompatibility = 1.8
+	}
+	
+	javadoc {
+		options.addStringOption('Xdoclint:none', '-quiet')
+		options.addStringOption('encoding', 'UTF-8')
+	}
+
+	jacoco {
+		toolVersion = '0.8.5'
+	}
+
+	jacocoTestReport {
+		reports {
+			xml.enabled = true
+			html.enabled = true
+		}
+	}
+
+	//includes for base test task (see below for additional common configurations)
+	test {
+		//all test tasks will show FAILED for each test method,
+		// common exclusions, no scanning
+		testLogging {
+			events "FAILED"
+			showExceptions true
+			exceptionFormat "FULL"
+			stackTraceFilters "ENTRY_POINT"
+			maxGranularity 3
+		}
+
+		include '**/*Test.*'
+		exclude '**/*Abstract*.*'
+
+		//allow re-run of failed tests only without special test tasks failing
+		// because the filter is too restrictive
+		filter.setFailOnNoMatchingTests(false)
+
+		//display intermediate results for special test tasks
+		afterSuite { desc, result ->
+			if (!desc.parent) { // will match the outermost suite
+			println('\n' + "${desc} Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)")
+			}
+		}
+	}
+}
