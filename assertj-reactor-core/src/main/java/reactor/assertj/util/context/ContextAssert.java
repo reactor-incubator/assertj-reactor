@@ -1,14 +1,14 @@
 package reactor.assertj.util.context;
 
-import java.util.AbstractMap;
 import java.util.Map;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.internal.Iterables;
+import org.assertj.core.presentation.StandardRepresentation;
 
+import reactor.assertj.ReactorRepresentation;
 import reactor.test.StepVerifier;
 import reactor.util.context.Context;
 
@@ -22,23 +22,12 @@ public class ContextAssert extends AbstractAssert<ContextAssert, Context> {
 
 	protected final Iterables iterables = Iterables.instance();
 
-	/**
-	 * Workaround because Context1 implements {@link java.util.Map.Entry} and implements {@link Context#stream()}
-	 * as {@code Stream.of(this)}, which throws the toString off in message formatters.
-	 *
-	 * @param context the context to properly convert to entry stream
-	 * @return a stream of {@link java.util.AbstractMap.SimpleImmutableEntry}
-	 */
-	private static Stream<Map.Entry<Object, Object>> fixContext1EntryStream(Context context) {
-		if (context instanceof Map.Entry) {
-			@SuppressWarnings("unchecked") final Map.Entry<Object, Object> contextAsEntry = (Map.Entry<Object, Object>) context;
-			return Stream.of(new AbstractMap.SimpleImmutableEntry<>(contextAsEntry));
-		}
-		return context.stream();
-	}
-
 	public ContextAssert(Context context) {
 		super(context, ContextAssert.class);
+//		Workaround because Context1 implements Context#stream() as Stream.of(this),
+//		so the representation leaks in message formatters.
+		StandardRepresentation representation = new ReactorRepresentation();
+		getWritableAssertionInfo().useRepresentation(representation);
 	}
 
 	/**
@@ -97,8 +86,8 @@ public class ContextAssert extends AbstractAssert<ContextAssert, Context> {
 	 */
 	public ContextAssert containsAllOf(Context other) {
 		iterables.assertContainsAll(info,
-				fixContext1EntryStream(actual).collect(Collectors.toList()),
-				fixContext1EntryStream(other).collect(Collectors.toList()));
+				actual.stream().collect(Collectors.toList()),
+				other.stream().collect(Collectors.toList()));
 		return this;
 	}
 
@@ -110,7 +99,7 @@ public class ContextAssert extends AbstractAssert<ContextAssert, Context> {
 	 */
 	public ContextAssert containsAllOf(Map<?, ?> other) {
 		iterables.assertContainsAll(info,
-				fixContext1EntryStream(actual).collect(Collectors.toList()),
+				actual.stream().collect(Collectors.toList()),
 				other.entrySet());
 		return this;
 	}
@@ -123,10 +112,10 @@ public class ContextAssert extends AbstractAssert<ContextAssert, Context> {
 	 */
 	public ContextAssert containsOnly(Context other) {
 
-		Map.Entry<Object, Object>[] otherArray = fixContext1EntryStream(other).toArray(ARRAY_GENERATOR);
+		Map.Entry<Object, Object>[] otherArray = other.stream().toArray(ARRAY_GENERATOR);
 		//we use containsOnly and not containsExactlyInAnyOrder because we don't care about duplicates
 		iterables.assertContainsOnly(info,
-				fixContext1EntryStream(actual).collect(Collectors.toList()),
+				actual.stream().collect(Collectors.toList()),
 				otherArray);
 		return this;
 	}
@@ -142,7 +131,7 @@ public class ContextAssert extends AbstractAssert<ContextAssert, Context> {
 		other.entrySet().toArray(otherArray);
 		//we use containsOnly and not containsExactlyInAnyOrder because we don't care about duplicates
 		iterables.assertContainsOnly(info,
-				fixContext1EntryStream(actual).collect(Collectors.toList()),
+				actual.stream().collect(Collectors.toList()),
 				otherArray);
 		return this;
 	}
