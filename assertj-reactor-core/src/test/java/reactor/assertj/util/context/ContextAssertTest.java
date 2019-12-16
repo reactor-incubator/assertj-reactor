@@ -1,8 +1,10 @@
 package reactor.assertj.util.context;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -301,5 +303,13 @@ class ContextAssertTest {
 			).withMessage("\nExpecting:\n  <[key1=value1, key2=value2]>\nto contain only:\n  <[key3=value3, key4=value4]>\n"
 					+ "elements not found:\n  <[key3=value3, key4=value4]>\nand elements not expected:\n  <[key1=value1, key2=value2]>\n");
 		}
+	}
+
+	@Test
+	void context1StreamStringRepresentation() {
+		assertThatExceptionOfType(AssertionError.class)
+				.isThrownBy(() -> Assertions.assertThat(Context.of(1, 10).stream()).containsOnly(new AbstractMap.SimpleEntry<>("foo", "bar")))
+				.withMessage("\nExpecting:\n  <[1=10]>\nto contain only:\n  <[foo=bar]>\nelements not found:" +
+						"\n  <[foo=bar]>\nand elements not expected:\n  <[1=10]>\n");
 	}
 }
