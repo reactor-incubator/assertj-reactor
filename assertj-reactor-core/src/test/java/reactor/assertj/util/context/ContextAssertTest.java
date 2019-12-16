@@ -9,10 +9,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import reactor.assertj.ReactorAssertions;
 import reactor.util.context.Context;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 class ContextAssertTest {
 
@@ -23,6 +23,217 @@ class ContextAssertTest {
 	void init() {
 		testData = Context.of("key1", "value1", "key2", "value2");
 		assertion = new ContextAssert(testData);
+	}
+
+	@Nested
+	class AllSatisfies {
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.allSatisfy((k, v) -> assertThat(k).asString().startsWith("key"))
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void fails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.allSatisfy((k, v) -> assertThat(k).asString().startsWith("keyo"))
+			).withMessageStartingWith("\nExpecting all elements of:\n  <[key1=value1, key2=value2]>\nto satisfy given requirements, but this element did not:" +
+					"\n  <key1=value1> \nDetails: \"\nExpecting:\n <\"key1\">\nto start with:\n <\"keyo\">");
+		}
+	}
+
+	@Nested
+	class ContainsKeys {
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.containsKeys("key1")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void failsOneNotFound() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.containsKeys("key1", "key3")
+			).withMessage("\nExpecting:\n <Context2{key1=value1, key2=value2}>\nto contain key:\n <\"key3\">");
+		}
+
+		@Test
+		void failsOnNull() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> ReactorAssertions.assertThat(null).containsKeys("key1")
+			).withMessage("\nExpecting actual not to be null");
+		}
+	}
+
+	@Nested
+	class ContainsOnlyKeys {
+
+		@Test
+		public void isNotNull() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> ReactorAssertions.assertThat(null).containsOnlyKeys("key1")
+			).withMessage("\nExpecting actual not to be null");
+		}
+
+		@Test
+		public void emptyContextAndEmptyKeys() {
+			assertThatCode(
+					() -> ReactorAssertions.assertThat(Context.empty()).containsOnlyKeys()
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.containsOnlyKeys("key1", "key2")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void failsSomeNotFound() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.containsOnlyKeys("key1", "key2", "key3")
+			).withMessage("\nExpecting:\n  <Context2{key1=value1, key2=value2}>\nto contain only following keys:\n  <[\"key1\", \"key2\", \"key3\"]>\nbut could not find the following keys:\n  <[\"key3\"]>\n");
+		}
+
+		@Test
+		void failsSomeNotExpected() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.containsOnlyKeys("key1")
+			).withMessage("\nExpecting:\n  <Context2{key1=value1, key2=value2}>\nto contain only following keys:\n  <[\"key1\"]>\nkeys not found:\n  <[]>\nand keys not expected:\n  <[key2=value2]>\n");
+		}
+
+		@Test
+		void failsSomeNotFoundAndNotExpected() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.containsOnlyKeys("key1", "key3")
+			).withMessage("\nExpecting:\n  <Context2{key1=value1, key2=value2}>\nto contain only following keys:\n  <[\"key1\", \"key3\"]>\nkeys not found:\n  <[\"key3\"]>\nand keys not expected:\n  <[key2=value2]>\n");
+		}
+	}
+
+	@Nested
+	class DoesNotContain {
+
+		@Test
+		public void isNotNull() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> ReactorAssertions.assertThat(null).doesNotContain("key", "value")
+			).withMessage("\nExpecting actual not to be null");
+		}
+
+		@Test
+		void succeedsKnownKeyButInconsistentValue() {
+			assertThatCode(
+					() -> assertion.doesNotContain("key1", "value2")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void succeedsUnknownKey() {
+			assertThatCode(
+					() -> assertion.doesNotContain("key3", "whatever")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		public void failsContainedEntry() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.doesNotContain("key1", "value1")
+			).withMessage("\nExpecting\n <Context2{key1=value1, key2=value2}>\nnot to contain\n <key1=value1>\nbut found\n <key1=value1>\n");
+		}
+	}
+
+	@Nested
+	class DoesNotContainKeys {
+
+		@Test
+		public void isNotNull() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> ReactorAssertions.assertThat(null).doesNotContainKeys()
+			).withMessage("\nExpecting actual not to be null");
+		}
+
+		@Test
+		void succeedsSingle() {
+			assertThatCode(
+					() -> assertion.doesNotContainKey("key3")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void succeedsMultiple() {
+			assertThatCode(
+					() -> assertion.doesNotContainKeys("key3", "key4")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		public void failsSingle() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.doesNotContainKey("key1")
+			).withMessage("\nExpecting\n <Context2{key1=value1, key2=value2}>\nnot to contain\n <[\"key1\"]>\nbut found\n <[key1=value1]>\n");
+		}
+
+		@Test
+		public void failsMultipleAllContained() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.doesNotContainKeys("key1", "key2")
+			).withMessage("\nExpecting\n <Context2{key1=value1, key2=value2}>\nnot to contain\n <[\"key1\", \"key2\"]>\nbut found\n <[key1=value1, key2=value2]>\n");
+		}
+
+		@Test
+		public void failsMultipleSomeContained() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.doesNotContainKeys("key1", "key3")
+			).withMessage("\nExpecting\n <Context2{key1=value1, key2=value2}>\nnot to contain\n <[\"key1\", \"key3\"]>\nbut found\n <[key1=value1]>\n");
+		}
+	}
+
+	@Nested
+	class DoesNotContainValue {
+
+		@Test
+		public void isNotNull() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> ReactorAssertions.assertThat(null).doesNotContainValue("foo")
+			).withMessage("\nExpecting actual not to be null");
+		}
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.doesNotContainValue("value12")
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		public void fails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.doesNotContainValue("value2")
+			).withMessage("\nExpecting:\n  <Context2{key1=value1, key2=value2}>\nnot to contain value:\n  <\"value2\">");
+		}
+	}
+
+	@Nested
+	class HasEntrySatisfying {
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.hasEntrySatisfying((k, v) -> assertThat(v).asString().isEqualTo("value2"))
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void fails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.hasEntrySatisfying((k, v) -> assertThat(v).asString().startsWith(("notAValue")))
+			).withMessage("\nExpecting any element of:\n  <[key1=value1, key2=value2]>\nto satisfy the given assertions requirements but none did.");
+		}
 	}
 
 	@Nested
@@ -41,7 +252,24 @@ class ContextAssertTest {
 					() -> assertion.hasKey("key3")
 			).withMessage("Expected context to have key <key3> but it didn't");
 		}
+	}
 
+	@Nested
+	class HasKeySatisfying {
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.hasKeySatisfying(k -> assertThat(k).asString().endsWith("2"))
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void fails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.hasKeySatisfying(k -> assertThat(k).asString().endsWith("3"))
+			).withMessage("\nExpecting any element of:\n  <[key1=value1, key2=value2]>\nto satisfy the given assertions requirements but none did.");
+		}
 	}
 
 	@Nested
@@ -60,7 +288,24 @@ class ContextAssertTest {
 					() -> assertion.hasSize(3)
 			).withMessage("Expected context size of <3> entries, but was <2>");
 		}
+	}
 
+	@Nested
+	class HasValueSatisfying {
+
+		@Test
+		void succeeds() {
+			assertThatCode(
+					() -> assertion.hasValueSatisfying(v -> assertThat(v).asString().endsWith("2"))
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void fails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.hasValueSatisfying(v -> assertThat(v).asString().endsWith("3"))
+			).withMessage("\nExpecting any element of:\n  <[key1=value1, key2=value2]>\nto satisfy the given assertions requirements but none did.");
+		}
 	}
 
 	@Nested
@@ -120,7 +365,7 @@ class ContextAssertTest {
 		@Test
 		void contextSameSizePartialMatch() {
 			Context partial = testData.delete("key1").put("key3", "value3");
-			
+
 			assertThatExceptionOfType(AssertionError.class).isThrownBy(
 					() -> assertion.containsAllOf(partial)
 			).withMessage("\nExpecting:\n <[key1=value1, key2=value2]>\nto contain:\n <[key2=value2, key3=value3]>\n"
@@ -157,7 +402,7 @@ class ContextAssertTest {
 					() -> assertion.containsAllOf(smaller)
 			).doesNotThrowAnyException();
 		}
-		
+
 		@Test
 		void mapBigger() {
 			Map<Object, Object> bigger = new HashMap<>();
@@ -302,6 +547,38 @@ class ContextAssertTest {
 					() -> assertion.containsOnly(none)
 			).withMessage("\nExpecting:\n  <[key1=value1, key2=value2]>\nto contain only:\n  <[key3=value3, key4=value4]>\n"
 					+ "elements not found:\n  <[key3=value3, key4=value4]>\nand elements not expected:\n  <[key1=value1, key2=value2]>\n");
+		}
+	}
+
+	@Nested
+	class Empty {
+
+		@Test
+		void isEmpty() {
+			assertThatCode(
+					() -> new ContextAssert(Context.empty()).isEmpty()
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void isEmptyFails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> assertion.isEmpty()
+			).withMessage("\nExpecting empty but was:<[key1=value1, key2=value2]>");
+		}
+
+		@Test
+		void isNotEmpty() {
+			assertThatCode(
+					() -> assertion.isNotEmpty()
+			).doesNotThrowAnyException();
+		}
+
+		@Test
+		void isNotEmptyFails() {
+			assertThatExceptionOfType(AssertionError.class).isThrownBy(
+					() -> new ContextAssert(Context.empty()).isNotEmpty()
+			).withMessage("\nExpecting actual not to be empty");
 		}
 	}
 
