@@ -6,8 +6,7 @@ import reactor.assertj.ReactorAssertions;
 import reactor.util.function.Tuple5;
 import reactor.util.function.Tuples;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 class Tuple5AssertTest {
 
@@ -82,5 +81,80 @@ class Tuple5AssertTest {
 		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
 				assertion.hasT5(6)
 		).withMessage("Expected Tuple5 to have fifth part <6> but was <5>");
+	}
+
+	@Test
+	void hasT1Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT1Satisfying(s -> assertThat(s).startsWith("examp"))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT1SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT1Satisfying(s -> assertThat(s).startsWith("foo"))
+		).withMessage("Expected Tuple5 first part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <\"example\">\nto start with:\n <\"foo\">\n");
+	}
+
+	@Test
+	void hasT2Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT2Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT2SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT2Satisfying(v -> assertThat(v).isGreaterThan(1000))
+		).withMessageStartingWith("Expected Tuple5 second part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <123>\nto be greater than:\n <1000>");
+	}
+
+	@Test
+	void hasT3Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT3Satisfying(v -> assertThat(v).isLessThan(50))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT3SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT3Satisfying(v -> assertThat(v).isLessThan(40))
+		).withMessageStartingWith("Expected Tuple5 third part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <45L>\nto be less than:\n <40L>");
+	}
+
+	@Test
+	void hasT4Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT4Satisfying(v -> assertThat(v).hasSize(6))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT4SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT4Satisfying(v -> assertThat(v).hasSize(100))
+		).withMessage("Expected Tuple5 fourth part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpected size:<100> but was:<6> in:\n<\"fourth\">");
+	}
+
+	@Test
+	void hasT5Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT5Satisfying(v -> assertThat(v).isGreaterThan(1))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT5SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT5Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).withMessage("Expected Tuple5 fifth part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <5>\nto be greater than:\n <100> ");
 	}
 }

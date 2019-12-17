@@ -1,5 +1,7 @@
 package reactor.assertj.util.function;
 
+import java.util.function.Consumer;
+
 import org.assertj.core.api.AbstractAssert;
 
 import reactor.util.function.Tuple4;
@@ -42,6 +44,50 @@ public class Tuple4Assert<T1, T2, T3, T4>
 		isNotNull();
 		if (!actual.getT4().equals(expected)) {
 			failWithMessage("Expected Tuple4 to have fourth part <%s> but was <%s>", expected, actual.getT4());
+		}
+		return this;
+	}
+
+	public Tuple4Assert<T1, T2, T3, T4> hasT1Satisfying(Consumer<T1> t1Requirements) {
+		isNotNull();
+		try {
+			t1Requirements.accept(actual.getT1());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple4 first part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple4Assert<T1, T2, T3, T4> hasT2Satisfying(Consumer<T2> t2Requirements) {
+		isNotNull();
+		try {
+			t2Requirements.accept(actual.getT2());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple4 second part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple4Assert<T1, T2, T3, T4> hasT3Satisfying(Consumer<T3> t3Requirements) {
+		isNotNull();
+		try {
+			t3Requirements.accept(actual.getT3());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple4 third part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple4Assert<T1, T2, T3, T4> hasT4Satisfying(Consumer<T4> t4Requirements) {
+		isNotNull();
+		try {
+			t4Requirements.accept(actual.getT4());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple4 fourth part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
 		}
 		return this;
 	}

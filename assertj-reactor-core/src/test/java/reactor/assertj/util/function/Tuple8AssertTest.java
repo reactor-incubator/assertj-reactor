@@ -6,8 +6,7 @@ import reactor.assertj.ReactorAssertions;
 import reactor.util.function.Tuple8;
 import reactor.util.function.Tuples;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 class Tuple8AssertTest {
 
@@ -124,5 +123,125 @@ class Tuple8AssertTest {
 		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
 				assertion.hasT8("eleven")
 		).withMessage("Expected Tuple8 to have eighth part <eleven> but was <eight>");
+	}
+
+	@Test
+	void hasT1Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT1Satisfying(s -> assertThat(s).startsWith("examp"))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT1SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT1Satisfying(s -> assertThat(s).startsWith("foo"))
+		).withMessage("Expected Tuple8 first part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <\"example\">\nto start with:\n <\"foo\">\n");
+	}
+
+	@Test
+	void hasT2Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT2Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT2SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT2Satisfying(v -> assertThat(v).isGreaterThan(1000))
+		).withMessageStartingWith("Expected Tuple8 second part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <123>\nto be greater than:\n <1000>");
+	}
+
+	@Test
+	void hasT3Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT3Satisfying(v -> assertThat(v).isLessThan(50))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT3SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT3Satisfying(v -> assertThat(v).isLessThan(40))
+		).withMessageStartingWith("Expected Tuple8 third part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <45L>\nto be less than:\n <40L>");
+	}
+
+	@Test
+	void hasT4Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT4Satisfying(v -> assertThat(v).hasSize(6))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT4SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT4Satisfying(v -> assertThat(v).hasSize(100))
+		).withMessage("Expected Tuple8 fourth part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpected size:<100> but was:<6> in:\n<\"fourth\">");
+	}
+
+	@Test
+	void hasT5Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT5Satisfying(v -> assertThat(v).isGreaterThan(1))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT5SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT5Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).withMessage("Expected Tuple8 fifth part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <5>\nto be greater than:\n <100> ");
+	}
+
+	@Test
+	void hasT6Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT6Satisfying(v -> assertThat(v).isGreaterThan(1))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT6SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT6Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).withMessage("Expected Tuple8 sixth part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <6>\nto be greater than:\n <100> ");
+	}
+
+	@Test
+	void hasT7Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT7Satisfying(v -> assertThat(v).isGreaterThan(1))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT7SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT7Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).withMessage("Expected Tuple8 seventh part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <7>\nto be greater than:\n <100> ");
+	}
+
+	@Test
+	void hasT8Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT8Satisfying(s -> assertThat(s).startsWith("eight"))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT8SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT8Satisfying(v -> assertThat(v).startsWith("nine"))
+		).withMessage("Expected Tuple8 eighth part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <\"eight\">\nto start with:\n <\"nine\">\n");
 	}
 }

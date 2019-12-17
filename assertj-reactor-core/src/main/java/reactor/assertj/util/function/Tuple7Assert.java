@@ -1,5 +1,7 @@
 package reactor.assertj.util.function;
 
+import java.util.function.Consumer;
+
 import org.assertj.core.api.AbstractAssert;
 
 import reactor.util.function.Tuple7;
@@ -67,6 +69,84 @@ public class Tuple7Assert<T1, T2, T3, T4, T5, T6, T7>
 		isNotNull();
 		if (!actual.getT7().equals(expected)) {
 			failWithMessage("Expected Tuple7 to have seventh part <%s> but was <%s>", expected, actual.getT7());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT1Satisfying(
+			Consumer<T1> t1Requirements) {
+		isNotNull();
+		try {
+			t1Requirements.accept(actual.getT1());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 first part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT2Satisfying(Consumer<T2> t2Requirements) {
+		isNotNull();
+		try {
+			t2Requirements.accept(actual.getT2());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 second part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT3Satisfying(Consumer<T3> t3Requirements) {
+		isNotNull();
+		try {
+			t3Requirements.accept(actual.getT3());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 third part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT4Satisfying(Consumer<T4> t4Requirements) {
+		isNotNull();
+		try {
+			t4Requirements.accept(actual.getT4());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 fourth part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT5Satisfying(Consumer<T5> t5Requirements) {
+		isNotNull();
+		try {
+			t5Requirements.accept(actual.getT5());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 fifth part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT6Satisfying(Consumer<T6> t6Requirements) {
+		isNotNull();
+		try {
+			t6Requirements.accept(actual.getT6());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 sixth part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple7Assert<T1, T2, T3, T4, T5, T6, T7> hasT7Satisfying(Consumer<T7> t7Requirements) {
+		isNotNull();
+		try {
+			t7Requirements.accept(actual.getT7());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple7 seventh part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
 		}
 		return this;
 	}

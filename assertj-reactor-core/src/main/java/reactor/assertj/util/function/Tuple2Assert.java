@@ -1,5 +1,7 @@
 package reactor.assertj.util.function;
 
+import java.util.function.Consumer;
+
 import org.assertj.core.api.AbstractAssert;
 
 import reactor.util.function.Tuple2;
@@ -40,6 +42,28 @@ public class Tuple2Assert<T1, T2> extends AbstractAssert<Tuple2Assert<T1, T2>, T
 		isNotNull();
 		if (!actual.getT2().equals(expected)) {
 			failWithMessage("Expected Tuple2 to have right part <%s> but was <%s>", expected, actual.getT2());
+		}
+		return this;
+	}
+
+	public Tuple2Assert<T1, T2> hasT1Satisfying(Consumer<T1> t1Requirements) {
+		isNotNull();
+		try {
+			t1Requirements.accept(actual.getT1());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple2 left part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
+		}
+		return this;
+	}
+
+	public Tuple2Assert<T1, T2> hasT2Satisfying(Consumer<T2> t2Requirements) {
+		isNotNull();
+		try {
+			t2Requirements.accept(actual.getT2());
+		}
+		catch (AssertionError details) {
+			failWithMessage("Expected Tuple2 right part to satisfy requirements, but didn't.%nDetails: %s", details.getMessage());
 		}
 		return this;
 	}

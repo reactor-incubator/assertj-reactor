@@ -6,8 +6,7 @@ import reactor.assertj.ReactorAssertions;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.*;
 
 class Tuple2AssertTest {
 
@@ -68,5 +67,35 @@ class Tuple2AssertTest {
 		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
 				assertion.hasT2(1234)
 		).withMessage("Expected Tuple2 to have right part <1234> but was <123>");
+	}
+
+	@Test
+	void hasT1Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT1Satisfying(s -> assertThat(s).startsWith("examp"))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT1SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT1Satisfying(s -> assertThat(s).startsWith("foo"))
+		).withMessage("Expected Tuple2 left part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <\"example\">\nto start with:\n <\"foo\">\n");
+	}
+
+	@Test
+	void hasT2Satisfying() {
+		assertThatCode(() ->
+				assertion.hasT2Satisfying(v -> assertThat(v).isGreaterThan(100))
+		).doesNotThrowAnyException();
+	}
+
+	@Test
+	void hasT2SatisfyingFails() {
+		assertThatExceptionOfType(AssertionError.class).isThrownBy(() ->
+				assertion.hasT2Satisfying(v -> assertThat(v).isGreaterThan(1000))
+		).withMessageStartingWith("Expected Tuple2 right part to satisfy requirements, but didn't.\nDetails: " +
+				"\nExpecting:\n <123>\nto be greater than:\n <1000>");
 	}
 }
